@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Virtual Run e-BIB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Google Fonts: Anton -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+
+<style>
+body { 
+  font-family: Arial, sans-serif; 
+  background: #f4f4f4; 
+  text-align: center; 
+  padding: 20px; 
+}
+h1 { 
+  color: #2a2a2a; 
+  font-family: 'Anton', sans-serif; 
+}
+input, button { 
+  padding: 10px; 
+  font-size: 16px; 
+  margin: 10px 0; 
+  width: 90%; 
+  max-width: 400px; 
+  font-family: 'Anton', sans-serif;
+}
+canvas { 
+  margin-top: 20px; 
+  max-width: 100%; 
+  border-radius: 10px; 
+  box-shadow: 0 0 10px rgba(0,0,0,0.2); 
+}
+a.download { 
+  display: inline-block; 
+  margin-top: 10px; 
+  padding: 10px 20px; 
+  background: #4CAF50; 
+  color: white; 
+  text-decoration: none; 
+  border-radius: 5px; 
+  font-family: 'Anton', sans-serif;
+}
+a.download:hover { 
+  background: #45a049; 
+}
+</style>
+</head>
+<body>
+
+<h1>Get Your e-BIB</h1>
+<p>Enter your full name</p>
+
+<input id="nameInput" placeholder="Full Name">
+<button id="generateBtn">Generate</button>
+
+<canvas id="canvas" width="1080" height="1350"></canvas>
+<br>
+<a id="downloadLink" class="download" style="display:none">Download e-BIB</a>
+
+<script>
+// --- VARIABLES ---
+let participants = [];
+let template = new Image();
+
+// Load participants.json
+fetch("data/participants.json")
+  .then(res => res.json())
+  .then(data => participants = data)
+  .catch(err => alert("Error loading participant list: " + err));
+
+// Load template image
+template.src = "assets/template.png";
+
+// --- FUZZY MATCH FUNCTION ---
+function fuzzyMatch(input, list){
+  input = input.toLowerCase();
+  let best = null;
+  let score = 0;
+  list.forEach(p => {
+    const name = p.name.toLowerCase();
+    let s = 0;
+    for(let i=0;i<Math.min(name.length,input.length);i++){
+      if(name[i]===input[i]) s++;
+    }
+    if(s>score){ score=s; best=p; }
+  });
+  return best;
+}
+
+// --- GENERATE FUNCTION ---
+function generate(){
+  const inputName = document.getElementById("nameInput").value.trim();
+  if(!inputName){ alert("Please enter your name"); return; }
+
+  const match = fuzzyMatch(inputName, participants);
+  const bibNumber = match ? match.bib : Math.floor(1000 + Math.random()*9000);
+  const displayName = match ? match.name : "";
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Ensure template is loaded before drawing
+  if (!template.complete) {
+      template.onload = () => drawCanvas();
+  } else {
+      drawCanvas();
+  }
+
+  function drawCanvas(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(template,0,0,canvas.width,canvas.height);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
+
+    // EVENT NAME
+    ctx.font = "bold 60px 'Anton', sans-serif";
+    ctx.fillText("MY VIRTUAL RUN 2026", canvas.width/2, 80);
+
+    // BIB NUMBER
+    ctx.font = "bold 140px 'Anton', sans-serif";
+    ctx.fillText(bibNumber, canvas.width/2, canvas.height/2);
+
+    // PARTICIPANT NAME
+    ctx.font = "bold 60px 'Anton', sans-serif";
+    if(displayName) ctx.fillText(displayName, canvas.width/2, canvas.height/2 + 120);
+
+    // DATE
+    ctx.font = "40px 'Anton', sans-serif";
+    ctx.fillText("March 2026", canvas.width/2, canvas.height - 50);
+
+    // Setup download
+    const downloadLink = document.getElementById("downloadLink");
+    downloadLink.href = canvas.toDataURL("image/png");
+    downloadLink.download = `eBIB_${bibNumber}_${displayName.replace(/\s+/g,"_") || "guest"}.png`;
+    downloadLink.style.display = "inline-block";
+  }
+}
+
+// Attach generate function to button
+document.getElementById("generateBtn").addEventListener("click", generate);
+</script>
+
+</body>
+</html>
