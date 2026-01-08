@@ -99,7 +99,7 @@ function generate(){
 
   const match = fuzzyMatch(inputName, participants);
   const bibNumber = match ? match.bib : Math.floor(1000 + Math.random()*9000);
-  const displayName = match ? match.name : "";
+  const displayName = match ? match.name.toUpperCase() : "";
 
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
@@ -116,35 +116,8 @@ function generate(){
     ctx.drawImage(template,0,0,canvas.width,canvas.height);
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "#fff";
-
-    // EVENT NAME
-    ctx.font = "bold 60px 'Anton', sans-serif";
-    ctx.fillText("MY VIRTUAL RUN 2026", canvas.width/2, 80);
+    ctx.fillStyle = "#000"; // Black text
 
     // BIB NUMBER
     ctx.font = "bold 140px 'Anton', sans-serif";
-    ctx.fillText(bibNumber, canvas.width/2, canvas.height/2);
-
-    // PARTICIPANT NAME
-    ctx.font = "bold 60px 'Anton', sans-serif";
-    if(displayName) ctx.fillText(displayName, canvas.width/2, canvas.height/2 + 120);
-
-    // DATE
-    ctx.font = "40px 'Anton', sans-serif";
-    ctx.fillText("March 2026", canvas.width/2, canvas.height - 50);
-
-    // Setup download
-    const downloadLink = document.getElementById("downloadLink");
-    downloadLink.href = canvas.toDataURL("image/png");
-    downloadLink.download = `eBIB_${bibNumber}_${displayName.replace(/\s+/g,"_") || "guest"}.png`;
-    downloadLink.style.display = "inline-block";
-  }
-}
-
-// Attach generate function to button
-document.getElementById("generateBtn").addEventListener("click", generate);
-</script>
-
-</body>
-</html>
+    ctx.fillText(b
